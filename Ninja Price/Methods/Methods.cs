@@ -196,7 +196,7 @@ public partial class Main
         try
         {
             var uiHover = GameController.Game.IngameState.UIHover;
-            if (uiHover.Address != 0 && uiHover.AsObject<HoverItemIcon>().ToolTipType != ToolTipType.ItemInChat)
+            if (uiHover.Address != 0 && !IsItemInChat(uiHover.AsObject<HoverItemIcon>()))
             {
                 var inventoryItemIcon = uiHover.AsObject<NormalInventoryItem>();
                 var tooltip = inventoryItemIcon.Tooltip;
@@ -227,9 +227,17 @@ public partial class Main
     }
 
     /// <summary>
+    /// Whether the hovered item is an item linked in chat, which isn't priced. ExileCore 330.9 reads
+    /// the same element for InventoryItemTooltip and ItemInChatTooltip, so every hovered item reports
+    /// ToolTipType.ItemInChat. Only trust that when the two tooltips are different elements.
+    /// </summary>
+    private static bool IsItemInChat(HoverItemIcon hoverIcon) =>
+        hoverIcon.ToolTipType == ToolTipType.ItemInChat &&
+        hoverIcon.InventoryItemTooltip?.Address != hoverIcon.ItemInChatTooltip?.Address;
+
+    /// <summary>
     /// The rectangle of the tooltip the game is showing for whatever is under the mouse. Unlike
-    /// HoveredItem, this also works for things the plugin skips, such as items in the currency tab
-    /// that report ToolTipType.ItemInChat.
+    /// HoveredItem, this also works for things the plugin skips.
     /// </summary>
     private SharpDX.RectangleF? GetHoveredTooltipRect(Element uiHover)
     {
